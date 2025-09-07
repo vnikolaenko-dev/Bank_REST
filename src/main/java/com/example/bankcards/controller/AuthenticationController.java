@@ -2,7 +2,7 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.util.JwtUtil;
+import com.example.bankcards.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,10 +21,7 @@ public class AuthenticationController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    // DTO для запроса логина
     public record AuthRequest(String login, String password) {}
-
-    // DTO для ответа с токеном
     public record AuthResponse(String token) {}
 
     @PostMapping("/login")
@@ -45,7 +42,6 @@ public class AuthenticationController {
 
         // Генерируем JWT
         String token = jwtUtil.generateToken(user.getLogin(), roles);
-
         return new AuthResponse(token);
     }
 }

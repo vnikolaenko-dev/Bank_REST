@@ -1,6 +1,5 @@
-package com.example.bankcards.util;
+package com.example.bankcards.security;
 
-import com.example.bankcards.entity.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;

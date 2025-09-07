@@ -15,6 +15,7 @@ import java.time.YearMonth;
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @JsonIgnore
     private Long id;
 
     @Column(name = "number", unique = true, nullable = false, length = 16)
@@ -35,7 +36,7 @@ public class Card {
     private Double balance;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User bankUser;
 }

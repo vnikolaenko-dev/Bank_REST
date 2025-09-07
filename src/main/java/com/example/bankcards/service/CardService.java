@@ -4,22 +4,23 @@ import com.example.bankcards.dto.CreateCardRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.CardRepository;
-import com.example.bankcards.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CardService {
     private final CardRepository cardRepository;
     private final UserService userService;
 
-    public CardService(CardRepository cardRepository, UserService userService) {
-        this.cardRepository = cardRepository;
-        this.userService = userService;
-    }
-
+    @Transactional
     public Card createCard(CreateCardRequest createCardRequest) {
         User user = userService.findUserByLogin(createCardRequest.login())
                 .orElseThrow(() -> new RuntimeException("User not found: " + createCardRequest.login()));
@@ -31,6 +32,13 @@ public class CardService {
         return cardRepository.save(card);
     }
 
+    public Optional<Card> findCardByNumber(String cardNumber) {
+        return cardRepository.findByNumber(cardNumber);
+    }
+
+    public List<Card> getCardsByUser(User user) {
+        return cardRepository.getCardsByBankUser(user);
+    }
 
     public ArrayList<Card> getAllCards() {
         return (ArrayList<Card>) cardRepository.findAll();
@@ -45,4 +53,28 @@ public class CardService {
         return number.toString();
     }
 
+    @Transactional
+    @Modifying
+    public boolean makeTransaction(Card cardFrom, Card cardTo, int amount) {
+        if (cardFrom.getBankUser().getLogin().equals(cardTo.getBankUser().getLogin())
+                && amount >= 0
+                && cardFrom.getStatus() == Card.CardStatus.ACTIVE
+                && cardTo.getStatus() == Card.CardStatus.ACTIVE
+                && cardFrom.getBalance() >= amount) {
+            cardRepository.updateCard(cardFrom);
+            cardRepository.updateCard(cardTo);
+            return true;
+        }
+        return false;
+    }
+
+    @Transactional
+    public void updateCard(Card cardFrom){
+        cardRepository.updateCard(cardFrom);
+    }
+
+    @Transactional
+    public void deleteCard(Card cardFrom) {
+        cardRepository.delete(cardFrom);
+    }
 }
