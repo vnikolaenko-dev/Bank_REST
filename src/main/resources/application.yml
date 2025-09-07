@@ -26,6 +26,11 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+  show-spring-security: true
+  packages-to-scan: com.example.bankcards.controller
+  paths-to-match: /api/**
+
+
 
 # Дополнительные настройки
 logging:
