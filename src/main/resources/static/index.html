@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank REST — Frontend</title>
+  <style>
+    :root{
+      --bg:#0b0e14;         /* глубокий тёмный */
+      --panel:#11151f;      /* панели */
+      --panel-2:#0f1320;    /* вторичный */
+      --text:#e6eaf2;       /* основной текст */
+      --muted:#a5adc1;      /* вторичный текст */
+      --brand:#6aa3ff;      /* акцент */
+      --good:#3bd671;
+      --warn:#ffb454;
+      --bad:#ff6b6b;
+      --border:#1e2433;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";
+      background:radial-gradient(1000px 600px at 80% -10%, #13213a 0%, transparent 60%),
+      radial-gradient(800px 600px at -20% 120%, #1a1533 0%, transparent 60%),
+      var(--bg);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:3;
+      background:linear-gradient(180deg, rgba(17,21,31,.9), rgba(17,21,31,.5));
+      backdrop-filter: blur(8px);
+      border-bottom:1px solid var(--border);
+    }
+    .topbar{display:flex; align-items:center; gap:16px; padding:12px 20px; max-width:1200px; margin:0 auto}
+    .logo{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.3px}
+    .logo .dot{width:10px; height:10px; border-radius:50%; background:var(--brand); box-shadow:0 0 14px var(--brand)}
+    .grow{flex:1}
+    .user-info { margin-left: 10px; font-size: 12px; color: var(--muted); }
+    .role-badge {
+      background: var(--brand);
+      color: #0a0d14;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+
+    input,select,button,textarea{
+      background:var(--panel-2); color:var(--text);
+      border:1px solid var(--border); border-radius:12px; padding:10px 12px; outline:none;
+    }
+    input::placeholder{color:#8e98b5}
+    button{cursor:pointer; transition:.2s transform ease, .2s opacity ease, .2s background ease}
+    button:hover{transform:translateY(-1px)}
+    button:disabled{opacity:.6; cursor:not-allowed}
+    .btn{background:var(--brand); color:#0a0d14; font-weight:700; border:none}
+    .btn.secondary{background:#222a3b; color:var(--text)}
+    .btn.ghost{background:transparent; border:1px solid var(--border); color:var(--muted)}
+    .btn.bad{background:var(--bad); color:#1a0e0e}
+    .btn.warn{background:var(--warn); color:#1a140a}
+
+    main{max-width:1200px; margin:24px auto; padding:0 20px; display:grid; grid-template-columns:280px 1fr; gap:20px}
+    .card{background:rgba(17,21,31,.92); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .panel{padding:16px}
+
+    .sidebar .section{padding:16px; border-bottom:1px solid var(--border)}
+    .sidebar .section:last-child{border-bottom:none}
+    .section h3{margin:0 0 10px; font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted)}
+    .row{display:flex; gap:10px; align-items:center}
+    .col{display:grid; gap:10px}
+    .muted{color:var(--muted)}
+    .tiny{font-size:12px}
+
+    .tabs{display:flex; gap:8px; flex-wrap:wrap}
+    .tabs button{padding:8px 12px; border-radius:10px; background:#141b2b; border:1px solid var(--border)}
+    .tabs button.active{background:var(--brand); color:#0a0d14; border-color:transparent}
+
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:10px 12px; border-bottom:1px solid var(--border); text-align:left}
+    th{color:var(--muted); font-weight:600; font-size:12px; letter-spacing:.08em; text-transform:uppercase}
+
+    .grid{display:grid; gap:12px}
+    .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#101524}
+    .status.active{color:var(--good)}
+    .status.blocked{color:var(--warn)}
+    .status.inactive{color:var(--bad)}
+
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0b0f19; border:1px solid var(--border); padding:2px 6px; border-radius:6px}
+
+    .footer{max-width:1200px; margin:30px auto 80px; padding:0 20px; color:var(--muted)}
+    .code{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono"; background:#0b0f19; border:1px dashed #263049; padding:8px 10px; border-radius:10px}
+
+    .hidden { display: none; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    @media (max-width: 920px){
+      main{grid-template-columns:1fr}
+    }
+
+    #toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="logo"><span class="dot"></span> Bank REST — Панель</div>
+    <div class="grow"></div>
+    <span id="userInfo" class="user-info"></span>
+    <button class="btn ghost tiny" id="btnLogout" title="Очистить токен и выйти">Выйти</button>
+  </div>
+</header>
+
+<main>
+  <!-- Sidebar -->
+  <aside class="card sidebar">
+    <div class="section">
+      <h3>Настройки API</h3>
+      <div class="col">
+        <label class="tiny muted" for="baseUrl">Базовый URL</label>
+        <input id="baseUrl" placeholder="http://localhost:8080" />
+        <div class="tiny muted">Измените при необходимости. Все запросы идут на <span class="kbd">{baseUrl}</span>.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Аутентификация</h3>
+      <div class="col">
+        <input id="username" placeholder="Логин" />
+        <input id="password" placeholder="Пароль" type="password" />
+        <div class="row">
+          <button class="btn" id="btnLogin">Войти</button>
+          <button class="btn secondary" id="btnWhoAmI">Проверить токен</button>
+        </div>
+        <div class="tiny muted">Токен хранится в <span class="kbd">localStorage</span> как <span class="kbd">bank.jwt</span>.</div>
+        <div id="authHint" class="tiny"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Навигация</h3>
+      <div class="tabs">
+        <button data-tab="cards" class="tab-btn active">Мои карты</button>
+        <button data-tab="transfer" class="tab-btn">Перевод</button>
+        <button data-tab="admin-cards" class="tab-btn hidden" id="adminCardsTab">Управление картами</button>
+        <button data-tab="admin-users" class="tab-btn hidden" id="adminUsersTab">Управление пользователями</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Debug</h3>
+      <div class="col">
+        <button class="btn ghost" id="btnCopyCurl">Скопировать cURL последнего запроса</button>
+        <pre id="lastReq" class="code tiny" style="white-space:pre-wrap"></pre>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Content area -->
+  <section class="card panel">
+    <!-- Мои карты -->
+    <div id="view-cards" class="view active">
+      <h2>Мои карты</h2>
+      <div class="row" style="margin:10px 0 16px">
+        <input id="search" placeholder="Поиск по номеру/владельцу" style="flex:1" />
+        <select id="status">
+          <option value="">Любой статус</option>
+          <option value="ACTIVE">Активна</option>
+          <option value="BLOCKED">Заблокирована</option>
+          <option value="INACTIVE">Неактивна</option>
+        </select>
+        <button class="btn" id="btnLoadCards">Обновить</button>
+      </div>
+
+      <div class="grid cols-3" id="stats" style="margin:14px 0 22px"></div>
+
+      <div class="card panel" style="background:#0f1423">
+        <table id="cardsTable">
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>Номер</th>
+            <th>Владелец</th>
+            <th>Срок</th>
+            <th>Статус</th>
+            <th>Баланс</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Перевод -->
+    <div id="view-transfer" class="view">
+      <h2>Перевод между картами</h2>
+      <div class="grid cols-2">
+        <input id="fromCard" placeholder="Из карты (номер)" />
+        <input id="toCard" placeholder="В карту (номер)" />
+      </div>
+      <div class="grid cols-2" style="margin-top:10px">
+        <input id="amount" type="number" step="0.01" placeholder="Сумма" />
+        <input id="comment" placeholder="Комментарий (опционально)" />
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="btnTransfer">Перевести</button>
+        <span id="transferHint" class="tiny muted"></span>
+      </div>
+    </div>
+
+    <!-- Админ: Управление картами -->
+    <div id="view-admin-cards" class="view">
+      <h2>Управление картами (Админ)</h2>
+
+      <h3>Создать карту</h3>
+      <div class="grid cols-2">
+        <input id="newOwner" placeholder="Имя пользователя" />
+        <input id="newBalance" type="number" step="0.01" placeholder="Начальный баланс" />
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnCreateCard">Создать</button>
+        <span id="createHint" class="tiny muted"></span>
+      </div>
+
+      <h3 style="margin-top:24px">Все карты</h3>
+      <div class="row" style="margin:10px 0 16px">
+        <input id="adminSearch" placeholder="Поиск по пользователю" style="flex:1" />
+        <select id="adminStatus">
+          <option value="">Любой статус</option>
+          <option value="ACTIVE">Активна</option>
+          <option value="BLOCKED">Заблокирована</option>
+          <option value="INACTIVE">Неактивна</option>
+        </select>
+        <button class="btn" id="btnLoadAllCards">Загрузить все</button>
+      </div>
+
+      <div class="card panel" style="background:#0f1423">
+        <table id="adminCardsTable">
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>Номер</th>
+            <th>Владелец</th>
+            <th>Срок</th>
+            <th>Статус</th>
+            <th>Баланс</th>
+            <th>Действия</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Админ: Управление пользователями -->
+    <div id="view-admin-users" class="view">
+      <h2>Управление пользователями (Админ)</h2>
+
+      <h3>Создать пользователя</h3>
+      <div class="grid cols-2">
+        <input id="adminUser" placeholder="Имя пользователя" />
+        <input id="adminPass" placeholder="Пароль" type="password" />
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnCreateUser">Создать пользователя</button>
+        <span id="adminHint" class="tiny muted"></span>
+      </div>
+
+      <h3 style="margin-top:24px">Все пользователи</h3>
+      <div class="row" style="margin:10px 0 16px">
+        <button class="btn" id="btnLoadAllUsers">Загрузить пользователей</button>
+      </div>
+
+      <div class="card panel" style="background:#0f1423">
+        <table id="adminUsersTable">
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>Имя пользователя</th>
+            <th>Действия</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="toast" class="card">…</div>
+  </section>
+</main>
+
+<div class="footer tiny">Основано на реальных эндпоинтах API. Все пути можно изменить в объекте <span class="kbd">API</span> внизу файла.</div>
+
+<script>
+  // ============== Конфиг API (обновлено согласно Swagger) ==============
+  const API = {
+    login: "/api/auth/login",
+    cards: {
+      getUserCards: "/api/user/card/get-all",
+      makeTransaction: "/api/user/card/make-transaction",
+      admin: {
+        getAll: "/api/admin/card-control/get-all",
+        getUserCards: "/api/admin/card-control/get-user-cards/",
+        create: "/api/admin/card-control/create",
+        delete: "/api/admin/card-control/delete",
+        changeStatus: "/api/admin/card-control/change-status"
+      }
+    },
+    users: {
+      create: "/api/admin/user-control/create",
+      getAll: "/api/admin/user-control/get-all",
+      delete: "/api/admin/user-control/delete/"
+    }
+  };
+
+  // ============== Утилиты ==============
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const state = {
+    get baseUrl(){ return localStorage.getItem('bank.baseUrl') || 'http://localhost:8080' },
+    set baseUrl(v){ localStorage.setItem('bank.baseUrl', v) },
+    get token(){ return localStorage.getItem('bank.jwt') || '' },
+    set token(v){ v ? localStorage.setItem('bank.jwt', v) : localStorage.removeItem('bank.jwt') },
+    user: null,
+    last:{ method:'', url:'', body:null, headers:{} }
+  };
+
+  function toast(msg, ms=2500){
+    const el = $('#toast');
+    el.textContent = msg;
+    el.style.display='block';
+    setTimeout(()=> el.style.display='none', ms);
+  }
+
+  function withBase(path){
+    const base = $('#baseUrl').value.trim() || state.baseUrl;
+    return base.replace(/\/$/, '') + path;
+  }
+
+  async function api(method, path, body, queryParams = {}){
+    let url = withBase(path);
+
+    // Добавляем query параметры если есть
+    if (Object.keys(queryParams).length > 0) {
+      const queryString = new URLSearchParams(queryParams).toString();
+      url += (url.includes('?') ? '&' : '?') + queryString;
+    }
+
+    const headers = { 'Content-Type': 'application/json' };
+    if(state.token) headers['Authorization'] = `Bearer ${state.token}`;
+    const req = { method, headers };
+    if(body !== undefined && body !== null) req.body = JSON.stringify(body);
+    state.last = { method, url, body, headers };
+    $('#lastReq').textContent = `${method} ${url}\n` + JSON.stringify(body || {}, null, 2);
+
+    try {
+      const res = await fetch(url, req);
+      let data = null;
+      const text = await res.text();
+      try{
+        data = text ? JSON.parse(text) : null;
+      } catch(e){
+        data = { raw: text };
+        console.warn('Response is not JSON:', text);
+      }
+
+      if(!res.ok){
+        throw {
+          status: res.status,
+          data,
+          message: data?.message || data?.error || `HTTP ${res.status}`
+        };
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API call failed:', error);
+      throw error;
+    }
+  }
+
+  function mask(cardNumber){
+    if(!cardNumber) return '**** **** **** ****';
+    const last4 = (''+cardNumber).slice(-4);
+    return `**** **** **** ${last4}`;
+  }
+
+  function statusPill(s){
+    const cls = s === 'ACTIVE' ? 'active' : s === 'BLOCKED' ? 'blocked' : 'inactive';
+    return `<span class="pill status ${cls}">${s}</span>`;
+  }
+
+  function money(v){
+    const n = Number(v||0);
+    return new Intl.NumberFormat('ru-RU', { style:'currency', currency:'RUB' }).format(n);
+  }
+
+  function updateUIForUser() {
+    const isAdmin = state.user && state.user.roles && state.user.roles.includes('ROLE_ADMIN');
+
+    // Показываем/скрываем админские вкладки
+    $('#adminCardsTab').classList.toggle('hidden', !isAdmin);
+    $('#adminUsersTab').classList.toggle('hidden', !isAdmin);
+
+    // Обновляем информацию о пользователе
+    if (state.user) {
+      const roleBadges = state.user.roles.map(role =>
+              `<span class="role-badge">${role}</span>`
+      ).join('');
+      $('#userInfo').innerHTML = `${state.user.username} ${roleBadges}`;
+    } else {
+      $('#userInfo').textContent = '';
+    }
+  }
+
+  // ============== Инициализация UI ==============
+  function bindTabs(){
+    $$('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Обновляем активную кнопку
+        $$('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Показываем соответствующую вкладку
+        $$('.view').forEach(v => v.classList.remove('active'));
+        $(`#view-${btn.dataset.tab}`).classList.add('active');
+      });
+    });
+  }
+
+  function bindSidebar(){
+    $('#baseUrl').value = state.baseUrl;
+    $('#baseUrl').addEventListener('change', (e) => {
+      state.baseUrl = e.target.value;
+      toast('Base URL сохранён');
+    });
+
+    $('#btnLogout').addEventListener('click', () => {
+      state.token = '';
+      state.user = null;
+      $('#userInfo').textContent = '';
+      updateUIForUser();
+      toast('Токен очищен');
+    });
+
+    $('#btnCopyCurl').addEventListener('click', () => {
+      const { method, url, headers, body } = state.last;
+      const headerStr = Object.entries(headers).map(([k,v]) => `-H "${k}: ${v}"`).join(' ');
+      const bodyStr = body ? `-d '${JSON.stringify(body)}'` : '';
+      const cmd = `curl -X ${method} ${headerStr} ${bodyStr} '${url}'`;
+      navigator.clipboard.writeText(cmd).then(() => toast('cURL скопирован'));
+    });
+  }
+
+  function bindAuth(){
+    $('#btnLogin').addEventListener('click', async () => {
+      try {
+        const username = $('#username').value.trim();
+        const password = $('#password').value.trim();
+
+        if (!username || !password) {
+          throw { message: 'Заполните логин и пароль' };
+        }
+
+        const data = await api('POST', API.login, { username, password });
+
+        if (!data.token) {
+          throw { message: 'Сервер не вернул токен' };
+        }
+
+        state.token = data.token;
+        state.user = {
+          username,
+          roles: data.roles || ['USER']
+        };
+
+        updateUIForUser();
+        $('#authHint').textContent = 'Успешный вход';
+        $('#authHint').style.color = 'var(--good)';
+        toast('Успешный вход');
+
+        // Автоматически загружаем карты после входа
+        if (state.user.roles.includes('ROLE_USER')) {
+          loadCards();
+        }
+
+      } catch (e) {
+        handleErr(e, '#authHint');
+      }
+    });
+
+    $('#btnWhoAmI').addEventListener('click', () => {
+      if (state.user) {
+        $('#authHint').textContent = `Вы: ${state.user.username} (роли: ${state.user.roles.join(', ')})`;
+        $('#authHint').style.color = 'var(--muted)';
+      } else {
+        $('#authHint').textContent = 'Не авторизованы';
+        $('#authHint').style.color = 'var(--bad)';
+      }
+    });
+  }
+
+  function renderCards(list, isAdmin = false){
+    const tbody = isAdmin ? $('#adminCardsTable tbody') : $('#cardsTable tbody');
+    tbody.innerHTML = '';
+
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px">Карты не найдены</td></tr>';
+      return;
+    }
+
+    list.forEach((c, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+                <td>${i+1}</td>
+                <td>${mask(c.number)}</td>
+                <td>${c.owner || 'N/A'}</td>
+                <td>${c.expiryDate}</td>
+                <td>${statusPill(c.status)}</td>
+                <td>${money(c.balance)}</td>
+                ${isAdmin ? `
+                <td class="row">
+                    <button class="btn ghost tiny" data-act="toggleStatus" data-number="${c.number}" data-current="${c.status}">
+                        ${c.status === 'ACTIVE' ? 'Блокировать' : 'Активировать'}
+                    </button>
+                    <button class="btn bad tiny" data-act="delete" data-number="${c.number}">Удалить</button>
+                </td>` : ''}
+            `;
+      tbody.appendChild(tr);
+    });
+
+    if (isAdmin) {
+      tbody.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const number = btn.dataset.number;
+          const act = btn.dataset.act;
+
+          try {
+            if (act === 'delete') {
+              if (!confirm('Удалить карту? Это действие нельзя отменить.')) return;
+              await api('POST', API.cards.admin.delete, null, { number });
+              toast('Карта удалена');
+            } else if (act === 'toggleStatus') {
+              const currentStatus = btn.dataset.current;
+              const newStatus = currentStatus === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
+              await api('POST', API.cards.admin.changeStatus, null, {
+                number,
+                status: newStatus
+              });
+              toast(`Статус изменен на ${newStatus}`);
+            }
+            loadAdminCards();
+          } catch (e) {
+            toast('Ошибка операции');
+            console.error(e);
+          }
+        });
+      });
+    }
+
+    // Stats
+    const total = list.reduce((s, c) => s + Number(c.balance || 0), 0);
+    const byStatus = (st) => list.filter(c => c.status === st).length;
+    const statsEl = isAdmin ? $('#adminStats') : $('#stats');
+
+    if (statsEl) {
+      statsEl.innerHTML = `
+                <div class="card panel"><div class="muted tiny">Всего карт</div><div style="font-size:24px; font-weight:800">${list.length}</div></div>
+                <div class="card panel"><div class="muted tiny">Сумма балансов</div><div style="font-size:24px; font-weight:800">${money(total)}</div></div>
+                <div class="card panel"><div class="muted tiny">Активных</div><div style="font-size:24px; font-weight:800">${byStatus('ACTIVE')}</div></div>`;
+    }
+  }
+
+  async function loadCards(){
+    try {
+      if (!state.user) {
+        throw { message: 'Требуется авторизация' };
+      }
+
+      const body = {
+        username: state.user.username,
+        password: $('#password').value.trim(),
+      };
+
+      const data = await api('POST', API.cards.getUserCards, body);
+      const list = Array.isArray(data) ? data : [];
+
+      // Фильтрация по статусу
+      const statusFilter = $('#status').value;
+      const filteredList = statusFilter ? list.filter(card => card.status === statusFilter) : list;
+
+      // Фильтрация по поиску
+      const searchTerm = $('#search').value.toLowerCase();
+      const searchedList = searchTerm ?
+              filteredList.filter(card =>
+                      card.number.toLowerCase().includes(searchTerm) ||
+                      (card.owner && card.owner.toLowerCase().includes(searchTerm))
+              ) : filteredList;
+
+      renderCards(searchedList);
+    } catch (e) {
+      handleErr(e);
+    }
+  }
+
+  async function loadAdminCards(){
+    try {
+      if (!state.user || !state.user.roles.includes('ROLE_ADMIN')) {
+        throw { message: 'Требуются права администратора' };
+      }
+
+      const searchUser = $('#adminSearch').value.trim();
+      let data;
+
+      if (searchUser) {
+        data = await api('GET', API.cards.admin.getUserCards + searchUser);
+      } else {
+        data = await api('GET', API.cards.admin.getAll);
+      }
+
+      const list = Array.isArray(data) ? data : [];
+
+      // Фильтрация по статусу
+      const statusFilter = $('#adminStatus').value;
+      const filteredList = statusFilter ? list.filter(card => card.status === statusFilter) : list;
+
+      renderCards(filteredList, true);
+    } catch (e) {
+      handleErr(e);
+    }
+  }
+
+  function bindCards(){
+    $('#btnLoadCards').addEventListener('click', loadCards);
+    $('#btnLoadAllCards').addEventListener('click', loadAdminCards);
+
+    // Добавляем обработчики для фильтров
+    $('#status').addEventListener('change', loadCards);
+    $('#search').addEventListener('input', debounce(loadCards, 300));
+    $('#adminStatus').addEventListener('change', loadAdminCards);
+    $('#adminSearch').addEventListener('input', debounce(loadAdminCards, 300));
+  }
+
+  function bindTransfer(){
+    $('#btnTransfer').addEventListener('click', async () => {
+      try {
+        if (!state.user) {
+          throw { message: 'Требуется авторизация' };
+        }
+
+        const fromCard = $('#fromCard').value.trim();
+        const toCard = $('#toCard').value.trim();
+        const amount = Number($('#amount').value.trim() || 0);
+
+        if (!fromCard || !toCard || amount <= 0) {
+          throw { message: 'Заполните все поля корректно' };
+        }
+
+        const body = {
+          login: state.user.username,
+          password: $('#password').value.trim(),
+          cardNumberFrom: fromCard,
+          cardNumberTo: toCard,
+          amount: amount
+        };
+
+        await api('POST', API.cards.makeTransaction, body);
+        $('#transferHint').textContent = 'Перевод выполнен успешно';
+        $('#transferHint').style.color = 'var(--good)';
+        toast('Перевод выполнен успешно');
+
+        // Обновляем список карт
+        loadCards();
+
+      } catch (e) {
+        handleErr(e, '#transferHint');
+      }
+    });
+  }
+
+  async function loadAllUsers() {
+    try {
+      if (!state.user || !state.user.roles.includes('ROLE_ADMIN')) {
+        throw { message: 'Требуются права администратора' };
+      }
+
+      const data = await api('GET', API.users.getAll);
+      const users = Array.isArray(data) ? data : [];
+
+      const tbody = $('#adminUsersTable tbody');
+      tbody.innerHTML = '';
+
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px">Пользователи не найдены</td></tr>';
+        return;
+      }
+
+      users.forEach((username, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+                    <td>${i+1}</td>
+                    <td>${username}</td>
+                    <td>
+                        <button class="btn bad tiny" data-username="${username}">Удалить</button>
+                    </td>
+                `;
+        tbody.appendChild(tr);
+
+        // Добавляем обработчик удаления
+        tr.querySelector('button').addEventListener('click', async () => {
+          if (!confirm(`Удалить пользователя ${username}?`)) return;
+
+          try {
+            await api('GET', API.users.delete + username);
+            toast('Пользователь удален');
+            loadAllUsers();
+          } catch (e) {
+            handleErr(e);
+          }
+        });
+      });
+
+    } catch (e) {
+      handleErr(e);
+    }
+  }
+
+  function bindAdmin(){
+    $('#btnCreateUser').addEventListener('click', async () => {
+      try {
+        if (!state.user || !state.user.roles.includes('ROLE_ADMIN')) {
+          throw { message: 'Требуются права администратора' };
+        }
+
+        const username = $('#adminUser').value.trim();
+        const password = $('#adminPass').value.trim();
+
+        if (!username || !password) {
+          throw { message: 'Заполните имя пользователя и пароль' };
+        }
+
+        const body = { username, password };
+        await api('POST', API.users.create, body);
+
+        $('#adminHint').textContent = 'Пользователь создан';
+        $('#adminHint').style.color = 'var(--good)';
+        toast('Пользователь создан');
+
+        // Очищаем поля
+        $('#adminUser').value = '';
+        $('#adminPass').value = '';
+
+        // Обновляем список пользователей
+        loadAllUsers();
+
+      } catch (e) {
+        handleErr(e, '#adminHint');
+      }
+    });
+
+    $('#btnCreateCard').addEventListener('click', async () => {
+      try {
+        if (!state.user || !state.user.roles.includes('ROLE_ADMIN')) {
+          throw { message: 'Требуются права администратора' };
+        }
+
+        const username = $('#newOwner').value.trim();
+        const balance = Number($('#newBalance').value.trim() || 0);
+
+        if (!username || balance < 0) {
+          throw { message: 'Заполните имя пользователя и баланс' };
+        }
+
+        const body = { username, balance };
+        await api('POST', API.cards.admin.create, body);
+
+        $('#createHint').textContent = 'Карта создана';
+        $('#createHint').style.color = 'var(--good)';
+        toast('Карта создана');
+
+        // Очищаем поля
+        $('#newOwner').value = '';
+        $('#newBalance').value = '';
+
+        // Обновляем список карт
+        loadAdminCards();
+
+      } catch (e) {
+        handleErr(e, '#createHint');
+      }
+    });
+
+    $('#btnLoadAllUsers').addEventListener('click', loadAllUsers);
+  }
+
+  function handleErr(err, hintSel){
+    const msg = err?.message || err?.data?.message || err?.data?.error || JSON.stringify(err?.data || {}) || 'Ошибка запроса';
+    console.error('Error:', err);
+
+    if(hintSel){
+      const el = $(hintSel);
+      if (el) {
+        el.textContent = `Ошибка: ${msg}`;
+        el.style.color = 'var(--bad)';
+      }
+    }
+
+    toast('Ошибка: ' + msg);
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // ============== Boot ==============
+  function init() {
+    bindTabs();
+    bindSidebar();
+    bindAuth();
+    bindCards();
+    bindTransfer();
+    bindAdmin();
+
+    // Восстанавливаем состояние пользователя если токен есть
+    if (state.token) {
+      state.user = { username: 'user', roles: ['ROLE_USER'] }; // базовое состояние
+      updateUIForUser();
+      $('#authHint').textContent = 'Токен найден. Нажмите "Проверить токен" для получения информации';
+      $('#authHint').style.color = 'var(--warn)';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
