@@ -7,5 +7,5 @@
 /dataSources/
 /dataSources.local.xml
 
-src/main/java/resources/static/
+src/main/resources/static/
 target/
