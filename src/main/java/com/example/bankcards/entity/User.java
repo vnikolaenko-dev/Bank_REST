@@ -19,16 +19,20 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String login;
+    private String username;
 
     @Column(nullable = false)
     private String password;
 
-    @OneToMany(mappedBy = "bankUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Card> cards = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @Column(nullable = false)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
     private List<Role> roles = new ArrayList<>();
 }

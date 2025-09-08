@@ -22,13 +22,15 @@ public class CardService {
 
     @Transactional
     public Card createCard(CreateCardRequest createCardRequest) {
-        User user = userService.findUserByLogin(createCardRequest.login())
-                .orElseThrow(() -> new RuntimeException("User not found: " + createCardRequest.login()));
+        System.out.println(createCardRequest);
+        User user = userService.findUserByUsername(createCardRequest.username())
+                .orElseThrow(() -> new RuntimeException("User not found: " + createCardRequest.username()));
         Card card = new Card();
-        card.setBankUser(user);
+        card.setOwner(user);
         card.setExpiryDate(YearMonth.now().plusYears(3));
         card.setStatus(Card.CardStatus.INACTIVE);
         card.setNumber(generateCardNumber());
+        card.setBalance(createCardRequest.balance());
         return cardRepository.save(card);
     }
 
@@ -37,7 +39,7 @@ public class CardService {
     }
 
     public List<Card> getCardsByUser(User user) {
-        return cardRepository.getCardsByBankUser(user);
+        return cardRepository.findByOwner(user);
     }
 
     public ArrayList<Card> getAllCards() {
@@ -56,13 +58,15 @@ public class CardService {
     @Transactional
     @Modifying
     public boolean makeTransaction(Card cardFrom, Card cardTo, int amount) {
-        if (cardFrom.getBankUser().getLogin().equals(cardTo.getBankUser().getLogin())
+        if (cardFrom.getOwner().getUsername().equals(cardTo.getOwner().getUsername())
                 && amount >= 0
                 && cardFrom.getStatus() == Card.CardStatus.ACTIVE
                 && cardTo.getStatus() == Card.CardStatus.ACTIVE
                 && cardFrom.getBalance() >= amount) {
-            cardRepository.updateCard(cardFrom);
-            cardRepository.updateCard(cardTo);
+            cardFrom.setBalance(cardFrom.getBalance() - amount);
+            cardTo.setBalance(cardTo.getBalance() + amount);
+            cardRepository.save(cardFrom);
+            cardRepository.save(cardTo);
             return true;
         }
         return false;
@@ -70,7 +74,7 @@ public class CardService {
 
     @Transactional
     public void updateCard(Card cardFrom){
-        cardRepository.updateCard(cardFrom);
+        cardRepository.save(cardFrom);
     }
 
     @Transactional

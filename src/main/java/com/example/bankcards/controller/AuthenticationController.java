@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,13 +22,13 @@ public class AuthenticationController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public record AuthRequest(String login, String password) {}
-    public record AuthResponse(String token) {}
+    public record AuthRequest(String username, String password) {}
+    public record AuthResponse(String token, List<String> roles) {}
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest request) {
         // Находим пользователя
-        User user = userRepository.findUserByLogin(request.login())
+        User user = userRepository.findUserByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Проверяем пароль
@@ -40,8 +41,7 @@ public class AuthenticationController {
                 .map(r -> r.getName()) // "ROLE_ADMIN", "ROLE_USER"
                 .collect(Collectors.toList());
 
-        // Генерируем JWT
-        String token = jwtUtil.generateToken(user.getLogin(), roles);
-        return new AuthResponse(token);
+        String token = jwtUtil.generateToken(user.getUsername(), roles);
+        return new AuthResponse(token, roles);
     }
 }

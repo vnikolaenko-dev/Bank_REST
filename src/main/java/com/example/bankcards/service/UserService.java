@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,17 +20,17 @@ public class UserService {
 
     public User createUser(UserRequest request) {
         User user = new User();
-        user.setLogin(request.login());
+        user.setUsername(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
         return userRepository.save(user);
     }
 
-    public Optional<User> findUserByLogin(String login) {
-        return userRepository.findUserByLogin(login);
+    public Optional<User> findUserByUsername(String username) {
+        return userRepository.findUserByUsername(username);
     }
 
     public User checkUserAndPassword(String login, String password) {
-        var user = findUserByLogin(login)
+        var user = findUserByUsername(login)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (!checkPassword(user, password)) {
             throw new RuntimeException("Invalid password");
@@ -40,5 +41,13 @@ public class UserService {
 
     public boolean checkPassword(User user, String rawPassword) {
         return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
+    public List<String> getUsernames() {
+        return userRepository.findAll().stream().map(User::getUsername).toList();
+    }
+
+    public void deleteByUsername(String username) {
+        userRepository.deleteUserByUsername(username);
     }
 }

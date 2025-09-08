@@ -11,12 +11,10 @@ import java.util.Optional;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
-    @EntityGraph(attributePaths = "user")
+    @EntityGraph(attributePaths = "owner")
     List<Card> findAll();
 
     Optional<Card> findByNumber(String cardNumber);
 
-    void updateCard(Card card);
-
-    List<Card> getCardsByBankUser(User user);
+    List<Card> findByOwner(User user);
 }

@@ -4,14 +4,13 @@ import com.example.bankcards.dto.UserRequest;
 import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
-@RequestMapping("/api/user-control")
+@RequestMapping("/api/admin/user-control")
 @RequiredArgsConstructor
 public class UserManipulationController {
     private final UserService userService;
@@ -20,6 +19,17 @@ public class UserManipulationController {
     @PostMapping("/create")
     public ResponseEntity<String> createUser(@RequestBody UserRequest request) {
         userService.createUser(request);
+        return ResponseEntity.ok("success");
+    }
+
+    @GetMapping("/get-all")
+    public ResponseEntity<List<String>> getUsers() {
+        return ResponseEntity.ok(userService.getUsernames());
+    }
+
+    @GetMapping("/delete/{username}")
+    public ResponseEntity<String> deleteUser(@PathVariable String username) {
+        userService.deleteByUsername(username);
         return ResponseEntity.ok("success");
     }
 }

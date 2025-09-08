@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         // Находим пользователя по логину
-        var user = userRepository.findUserByLogin(login)
+        var user = userRepository.findUserByUsername(login)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + login));
 
         // Преобразуем роли пользователя в GrantedAuthority
@@ -31,7 +31,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         // Возвращаем объект UserDetails
         return new org.springframework.security.core.userdetails.User(
-                user.getLogin(),
+                user.getUsername(),
                 user.getPassword(),
                 authorities
         );

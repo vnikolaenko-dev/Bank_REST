@@ -1,4 +1,4 @@
 package com.example.bankcards.dto;
 
 
-public record UserRequest(String login, String password) {}
+public record UserRequest(String username, String password) {}

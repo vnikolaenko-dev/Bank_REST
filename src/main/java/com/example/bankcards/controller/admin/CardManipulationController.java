@@ -5,6 +5,7 @@ import com.example.bankcards.dto.CardWithOwnerResponse;
 import com.example.bankcards.dto.CreateCardRequest;
 import com.example.bankcards.dto.ManipulateCardRequest;
 import com.example.bankcards.entity.Card;
+import com.example.bankcards.entity.User;
 import com.example.bankcards.service.CardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/card-control")
+@RequestMapping("/api/admin/card-control")
 @RequiredArgsConstructor
 public class CardManipulationController {
     private final CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<CardResponse> createCard(CreateCardRequest request) {
+    public ResponseEntity<CardResponse> createCard(@RequestBody CreateCardRequest request) {
         Card card = cardService.createCard(request);
         CardResponse cardResponse = new CardResponse(
                 card.getNumber(),
@@ -54,7 +55,24 @@ public class CardManipulationController {
                         card.getNumber(),
                         card.getExpiryDate(),
                         card.getStatus(),
-                        card.getBankUser().getLogin()
+                        card.getBalance(),
+                        card.getOwner().getUsername()
+                ))
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-user-cards/{username}")
+    public ResponseEntity<List<CardWithOwnerResponse>> getCards(@PathVariable String username) {
+        List<CardWithOwnerResponse> response = cardService.getAllCards().stream()
+                .filter(card -> card.getOwner().getUsername().equals(username))
+                .map(card ->
+                        new CardWithOwnerResponse(
+                        card.getNumber(),
+                        card.getExpiryDate(),
+                        card.getStatus(),
+                        card.getBalance(),
+                        card.getOwner().getUsername()
                 ))
                 .toList();
         return ResponseEntity.ok(response);
