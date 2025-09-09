@@ -1,4 +1,4 @@
-package com.example.bankcards.dto;
+package com.example.bankcards.dto.user;
 
 
 public record UserRequest(String username, String password) {}

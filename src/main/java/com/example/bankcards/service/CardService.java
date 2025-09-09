@@ -1,6 +1,6 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.dto.CreateCardRequest;
+import com.example.bankcards.dto.card.CardCreateRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.CardRepository;
@@ -21,7 +21,7 @@ public class CardService {
     private final UserService userService;
 
     @Transactional
-    public Card createCard(CreateCardRequest createCardRequest) {
+    public Card createCard(CardCreateRequest createCardRequest) {
         System.out.println(createCardRequest);
         User user = userService.findUserByUsername(createCardRequest.username())
                 .orElseThrow(() -> new RuntimeException("User not found: " + createCardRequest.username()));

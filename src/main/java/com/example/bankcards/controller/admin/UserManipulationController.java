@@ -1,6 +1,6 @@
 package com.example.bankcards.controller.admin;
 
-import com.example.bankcards.dto.UserRequest;
+import com.example.bankcards.dto.user.UserRequest;
 import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

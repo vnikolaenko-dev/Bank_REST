@@ -1,11 +1,9 @@
 package com.example.bankcards.controller.admin;
 
-import com.example.bankcards.dto.CardResponse;
-import com.example.bankcards.dto.CardWithOwnerResponse;
-import com.example.bankcards.dto.CreateCardRequest;
-import com.example.bankcards.dto.ManipulateCardRequest;
+import com.example.bankcards.dto.card.CardResponse;
+import com.example.bankcards.dto.card.CardCreateRequest;
+import com.example.bankcards.dto.card.CardManipulateRequest;
 import com.example.bankcards.entity.Card;
-import com.example.bankcards.entity.User;
 import com.example.bankcards.service.CardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,18 +18,20 @@ public class CardManipulationController {
     private final CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<CardResponse> createCard(@RequestBody CreateCardRequest request) {
+    public ResponseEntity<CardResponse> createCard(@RequestBody CardCreateRequest request) {
         Card card = cardService.createCard(request);
         CardResponse cardResponse = new CardResponse(
                 card.getNumber(),
                 card.getExpiryDate(),
-                card.getStatus()
+                card.getStatus(),
+                card.getBalance(),
+                card.getOwner().getUsername()
         );
         return ResponseEntity.ok(cardResponse);
     }
 
     @PostMapping("/change-status")
-    public ResponseEntity<String> changeCardStatus(ManipulateCardRequest request,
+    public ResponseEntity<String> changeCardStatus(CardManipulateRequest request,
                                                    @RequestParam Card.CardStatus status) {
         Card card = cardService.findCardByNumber(request.number())
                 .orElseThrow(() -> new RuntimeException("Card not found: " + request.number()));
@@ -41,7 +41,7 @@ public class CardManipulationController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteCard(ManipulateCardRequest request) {
+    public ResponseEntity<String> deleteCard(CardManipulateRequest request) {
         Card card = cardService.findCardByNumber(request.number())
                 .orElseThrow(() -> new RuntimeException("Card not found: " + request.number()));
         cardService.deleteCard(card);
@@ -49,9 +49,9 @@ public class CardManipulationController {
     }
 
     @GetMapping("/get-all")
-    public ResponseEntity<List<CardWithOwnerResponse>> getCards() {
-        List<CardWithOwnerResponse> response = cardService.getAllCards().stream()
-                .map(card -> new CardWithOwnerResponse(
+    public ResponseEntity<List<CardResponse>> getCards() {
+        List<CardResponse> response = cardService.getAllCards().stream()
+                .map(card -> new CardResponse(
                         card.getNumber(),
                         card.getExpiryDate(),
                         card.getStatus(),
@@ -63,11 +63,11 @@ public class CardManipulationController {
     }
 
     @GetMapping("/get-user-cards/{username}")
-    public ResponseEntity<List<CardWithOwnerResponse>> getCards(@PathVariable String username) {
-        List<CardWithOwnerResponse> response = cardService.getAllCards().stream()
+    public ResponseEntity<List<CardResponse>> getCards(@PathVariable String username) {
+        List<CardResponse> response = cardService.getAllCards().stream()
                 .filter(card -> card.getOwner().getUsername().equals(username))
                 .map(card ->
-                        new CardWithOwnerResponse(
+                        new CardResponse(
                         card.getNumber(),
                         card.getExpiryDate(),
                         card.getStatus(),

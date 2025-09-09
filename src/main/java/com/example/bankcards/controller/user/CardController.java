@@ -1,7 +1,7 @@
 package com.example.bankcards.controller.user;
 
-import com.example.bankcards.dto.CardWithOwnerResponse;
-import com.example.bankcards.dto.UserRequest;
+import com.example.bankcards.dto.card.CardResponse;
+import com.example.bankcards.dto.user.UserRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.service.CardService;
@@ -22,10 +22,10 @@ public class CardController {
     public record Transaction(String login, String password, String cardNumberFrom, String cardNumberTo, int amount) {}
 
     @PostMapping("/get-all")
-    public ResponseEntity<List<CardWithOwnerResponse>> getAllCards(@RequestBody UserRequest userRequest) {
+    public ResponseEntity<List<CardResponse>> getAllCards(@RequestBody UserRequest userRequest) {
         User user = userService.checkUserAndPassword(userRequest.username(), userRequest.password());
-        List<CardWithOwnerResponse> response = cardService.getCardsByUser(user).stream()
-                .map(card -> new CardWithOwnerResponse(
+        List<CardResponse> response = cardService.getCardsByUser(user).stream()
+                .map(card -> new CardResponse(
                         card.getNumber(),
                         card.getExpiryDate(),
                         card.getStatus(),
@@ -35,8 +35,6 @@ public class CardController {
                 .toList();
         return ResponseEntity.ok(response);
     }
-
-
 
     @PostMapping("/make-transaction")
     public ResponseEntity<String> makeTransaction(@RequestBody Transaction transaction) {
