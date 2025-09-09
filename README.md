@@ -26,7 +26,7 @@ Bank REST API — это современное RESTful приложение д�
 ## 🛠 Технологии
 - **Язык**: Java 17+
 - **Фреймворк**: Spring Boot, Spring Security, Spring Data JPA
-- **База данных**: PostgreSQL/MySQL
+- **База данных**: PostgreSQL
 - **Миграции**: Liquibase
 - **Контейнеризация**: Docker, Docker Compose
 - **Документация**: Swagger UI / OpenAPI
