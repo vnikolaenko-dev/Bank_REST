@@ -1,1 +1,529 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.3
+info:
+  title: API для управления картами и пользователями
+  description: API предоставляет функциональность для управления пользователями, картами, транзакциями и запросами на блокировку карт. Поддерживает аутентификацию, создание и удаление пользователей, управление статусами карт, а также получение информации о картах и запросах.
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер
+paths:
+  /api/user/query/make-query-to-block:
+    post:
+      summary: Создание запроса на блокировку карты
+      description: Позволяет пользователю создать запрос на блокировку карты, указав номер карты, имя пользователя, пароль и описание запроса.
+      operationId: makeQueryToBlock
+      tags:
+        - Запросы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlockCardQuery'
+      responses:
+        '200':
+          description: Запрос успешно создан
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/user/card/make-transaction:
+    post:
+      summary: Выполнение транзакции между картами
+      description: Позволяет пользователю выполнить транзакцию, указав логин, пароль, номера карт отправителя и получателя, а также сумму.
+      operationId: makeTransaction
+      tags:
+        - Карты
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: Транзакция успешно выполнена
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/user/card/get-all:
+    post:
+      summary: Получение списка всех карт пользователя
+      description: Возвращает список всех карт, связанных с указанным пользователем, при предоставлении имени пользователя и пароля.
+      operationId: getAllUserCards
+      tags:
+        - Карты
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        '200':
+          description: Список карт успешно получен
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+  /api/auth/login:
+    post:
+      summary: Аутентификация пользователя
+      description: Аутентифицирует пользователя и возвращает токен авторизации и список ролей.
+      operationId: login
+      tags:
+        - Аутентификация
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/admin/user-control/create:
+    post:
+      summary: Создание нового пользователя
+      description: Позволяет администратору создать нового пользователя, указав имя пользователя и пароль.
+      operationId: createUser
+      tags:
+        - Управление пользователями
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        '200':
+          description: Пользователь успешно создан
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/admin/user-control/get-all:
+    get:
+      summary: Получение списка всех пользователей
+      description: Возвращает список всех зарегистрированных пользователей.
+      operationId: getAllUsers
+      tags:
+        - Управление пользователями
+      responses:
+        '200':
+          description: Список пользователей успешно получен
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: string
+  /api/admin/user-control/delete/{username}:
+    get:
+      summary: Удаление пользователя
+      description: Удаляет пользователя по указанному имени пользователя.
+      operationId: deleteUser
+      tags:
+        - Управление пользователями
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Пользователь успешно удален
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/admin/card-control/delete:
+    post:
+      summary: Удаление карты
+      description: Позволяет администратору удалить карту по ее номеру.
+      operationId: deleteCard
+      tags:
+        - Управление картами
+      parameters:
+        - name: request
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/CardManipulateRequest'
+      responses:
+        '200':
+          description: Карта успешно удалена
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/admin/card-control/create:
+    post:
+      summary: Создание новой карты
+      description: Позволяет администратору создать новую карту для пользователя с указанным начальным балансом.
+      operationId: createCard
+      tags:
+        - Управление картами
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardCreateRequest'
+      responses:
+        '200':
+          description: Карта успешно создана
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+  /api/admin/card-control/change-status:
+    post:
+      summary: Изменение статуса карты
+      description: Позволяет администратору изменить статус карты (ACTIVE, BLOCKED, INACTIVE).
+      operationId: changeCardStatus
+      tags:
+        - Управление картами
+      parameters:
+        - name: request
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/CardManipulateRequest'
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - BLOCKED
+              - INACTIVE
+      responses:
+        '200':
+          description: Статус карты успешно изменен
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/admin/card-control/get-user-cards/{username}:
+    get:
+      summary: Получение карт пользователя
+      description: Возвращает список всех карт, принадлежащих указанному пользователю.
+      operationId: getUserCards
+      tags:
+        - Управление картами
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список карт успешно получен
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+  /api/admin/card-control/get-all:
+    get:
+      summary: Получение всех карт
+      description: Возвращает список всех карт в системе.
+      operationId: getAllCards
+      tags:
+        - Управление картами
+      responses:
+        '200':
+          description: Список карт успешно получен
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+  /api/admin/query-control/get-all:
+    get:
+      summary: Получение всех запросов на блокировку
+      description: Возвращает список всех запросов на блокировку карт.
+      operationId: getAllQueries
+      tags:
+        - Управление запросами
+      responses:
+        '200':
+          description: Список запросов успешно получен
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QueryToBlockCard'
+  /api/admin/query-control/approve/{card-number}:
+    get:
+      summary: Одобрение запроса на блокировку карты
+      description: Одобряет запрос на блокировку карты по указанному номеру карты.
+      operationId: approveQuery
+      tags:
+        - Управление запросами
+      parameters:
+        - name: card-number
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запрос успешно одобрен
+  /api/admin/query-control/reject/{card-number}:
+    get:
+      summary: Отклонение запроса на блокировку карты
+      description: Отклоняет запрос на блокировку карты по указанному номеру карты.
+      operationId: rejectQuery
+      tags:
+        - Управление запросами
+      parameters:
+        - name: card-number
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запрос успешно отклонен
+components:
+  schemas:
+    BlockCardQuery:
+      type: object
+      properties:
+        cardNumber:
+          type: string
+          description: Номер карты для блокировки
+        username:
+          type: string
+          description: Имя пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+        description:
+          type: string
+          description: Описание причины блокировки
+      required:
+        - cardNumber
+        - username
+        - password
+        - description
+    Transaction:
+      type: object
+      properties:
+        login:
+          type: string
+          description: Логин пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+        cardNumberFrom:
+          type: string
+          description: Номер карты отправителя
+        cardNumberTo:
+          type: string
+          description: Номер карты получателя
+        amount:
+          type: integer
+          format: int32
+          description: Сумма транзакции
+      required:
+        - login
+        - password
+        - cardNumberFrom
+        - cardNumberTo
+        - amount
+    UserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+      required:
+        - username
+        - password
+    CardResponse:
+      type: object
+      properties:
+        number:
+          type: string
+          description: Номер карты
+        expiryDate:
+          type: object
+          properties:
+            year:
+              type: integer
+              format: int32
+              description: Год истечения срока действия
+            month:
+              type: string
+              description: Месяц истечения срока действия
+              enum:
+                - JANUARY
+                - FEBRUARY
+                - MARCH
+                - APRIL
+                - MAY
+                - JUNE
+                - JULY
+                - AUGUST
+                - SEPTEMBER
+                - OCTOBER
+                - NOVEMBER
+                - DECEMBER
+            monthValue:
+              type: integer
+              format: int32
+              description: Числовое значение месяца
+            leapYear:
+              type: boolean
+              description: Признак високосного года
+          description: Дата истечения срока действия карты
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - INACTIVE
+          description: Статус карты
+        balance:
+          type: number
+          format: double
+          description: Баланс карты
+        owner:
+          type: string
+          description: Владелец карты
+      required:
+        - number
+        - expiryDate
+        - status
+        - balance
+        - owner
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+      required:
+        - username
+        - password
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Токен авторизации
+        roles:
+          type: array
+          items:
+            type: string
+          description: Список ролей пользователя
+      required:
+        - token
+        - roles
+    CardManipulateRequest:
+      type: object
+      properties:
+        number:
+          type: string
+          description: Номер карты
+      required:
+        - number
+    CardCreateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Имя пользователя, которому принадлежит карта
+        balance:
+          type: number
+          format: double
+          description: Начальный баланс карты
+      required:
+        - username
+        - balance
+    Card:
+      type: object
+      properties:
+        number:
+          type: string
+          description: Номер карты
+        expiryDate:
+          type: object
+          properties:
+            year:
+              type: integer
+              format: int32
+              description: Год истечения срока действия
+            month:
+              type: string
+              description: Месяц истечения срока действия
+              enum:
+                - JANUARY
+                - FEBRUARY
+                - MARCH
+                - APRIL
+                - MAY
+                - JUNE
+                - JULY
+                - AUGUST
+                - SEPTEMBER
+                - OCTOBER
+                - NOVEMBER
+                - DECEMBER
+            monthValue:
+              type: integer
+              format: int32
+              description: Числовое значение месяца
+            leapYear:
+              type: boolean
+              description: Признак високосного года
+          description: Дата истечения срока действия карты
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - INACTIVE
+          description: Статус карты
+        balance:
+          type: number
+          format: double
+          description: Баланс карты
+      required:
+        - number
+        - expiryDate
+        - status
+        - balance
+    QueryToBlockCard:
+      type: object
+      properties:
+        card:
+          $ref: '#/components/schemas/Card'
+        description:
+          type: string
+          description: Описание запроса на блокировку
+      required:
+        - card
+        - description
