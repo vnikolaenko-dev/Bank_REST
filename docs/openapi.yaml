@@ -188,7 +188,7 @@ paths:
   /api/admin/card-control/change-status:
     post:
       summary: Изменение статуса карты
-      description: Позволяет администратору изменить статус карты (ACTIVE, BLOCKED, INACTIVE).
+      description: Позволяет администратору изменить статус карты (ACTIVE, BLOCKED, INACTIVE, SERVICE_PERIOD_IS_OVER).
       operationId: changeCardStatus
       tags:
         - Управление картами
@@ -207,6 +207,7 @@ paths:
               - ACTIVE
               - BLOCKED
               - INACTIVE
+              - SERVICE_PERIOD_IS_OVER
       responses:
         '200':
           description: Статус карты успешно изменен
@@ -402,6 +403,7 @@ components:
             - ACTIVE
             - BLOCKED
             - INACTIVE
+            - SERVICE_PERIOD_IS_OVER
           description: Статус карты
         balance:
           type: number
@@ -506,6 +508,7 @@ components:
             - ACTIVE
             - BLOCKED
             - INACTIVE
+            - SERVICE_PERIOD_IS_OVER
           description: Статус карты
         balance:
           type: number

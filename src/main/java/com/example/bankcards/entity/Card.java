@@ -29,7 +29,7 @@ public class Card {
     private CardStatus status;
 
     public enum CardStatus {
-        ACTIVE, BLOCKED, INACTIVE
+        ACTIVE, BLOCKED, INACTIVE, SERVICE_PERIOD_IS_OVER
     }
 
     @Column(name = "balance", nullable = false)

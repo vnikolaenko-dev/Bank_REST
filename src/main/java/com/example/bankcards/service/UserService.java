@@ -1,10 +1,12 @@
 package com.example.bankcards.service;
 
+import com.example.bankcards.controller.AuthenticationController;
+import com.example.bankcards.dto.user.AuthRequest;
 import com.example.bankcards.dto.user.UserRequest;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.util.CryptoUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,14 +16,39 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final CardService cardService;
 
-    public User createUser(UserRequest request) {
+    public User login(AuthRequest request) {
+        // Находим пользователя
+        User user = findUserByUsername(request.username())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Проверяем пароль
+        try {
+            if (!request.password().equals(CryptoUtil.decrypt(user.getPassword()))) {
+                throw new RuntimeException("Invalid credentials");
+            }
+            Thread thread = new Thread(() -> {
+                cardService.checkCards(user);
+            });
+            thread.start();
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public void createUser(UserRequest request) {
         User user = new User();
         user.setUsername(request.username());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        return userRepository.save(user);
+        try {
+            user.setPassword(CryptoUtil.encrypt(request.password()));
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
+
 
     public Optional<User> findUserByUsername(String username) {
         return userRepository.findUserByUsername(username);
@@ -38,7 +65,11 @@ public class UserService {
 
 
     public boolean checkPassword(User user, String rawPassword) {
-        return passwordEncoder.matches(rawPassword, user.getPassword());
+        try {
+            return rawPassword.equals(CryptoUtil.decrypt(user.getPassword()));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public List<String> getUsernames() {

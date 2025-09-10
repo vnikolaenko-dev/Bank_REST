@@ -20,4 +20,9 @@ public class QueryToBlockCard {
     private Card card;
 
     private String description;
+
+    public QueryToBlockCard(Card card, String description) {
+        this.description = description;
+        this.card = card;
+    }
 }

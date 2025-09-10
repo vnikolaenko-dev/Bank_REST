@@ -16,10 +16,9 @@ import java.util.ArrayList;
 public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws Exception {
         Role adminRole = roleRepository.findByName("ROLE_ADMIN")
                 .orElseGet(() -> roleRepository.save(new Role("ROLE_ADMIN")));
 
@@ -29,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
         if (userRepository.findUserByUsername("admin").isEmpty()) {
             User admin = new User();
             admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setPassword(CryptoUtil.encrypt("admin123"));
             admin.getRoles().add(adminRole);
             admin.getRoles().add(userRole);
             userRepository.save(admin);
@@ -39,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
         if (userRepository.findUserByUsername("user").isEmpty()) {
             User admin = new User();
             admin.setUsername("user");
-            admin.setPassword(passwordEncoder.encode("user123"));
+            admin.setPassword(CryptoUtil.encrypt("user123"));
             admin.getRoles().add(userRole);
             userRepository.save(admin);
             System.out.println("Base user created: user / user123");

@@ -5,6 +5,7 @@ import com.example.bankcards.dto.card.CardCreateRequest;
 import com.example.bankcards.dto.card.CardManipulateRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.service.CardService;
+import com.example.bankcards.util.translator.FromCardToCardResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,14 +21,7 @@ public class CardManipulationController {
     @PostMapping("/create")
     public ResponseEntity<CardResponse> createCard(@RequestBody CardCreateRequest request) {
         Card card = cardService.createCard(request);
-        CardResponse cardResponse = new CardResponse(
-                card.getNumber(),
-                card.getExpiryDate(),
-                card.getStatus(),
-                card.getBalance(),
-                card.getOwner().getUsername()
-        );
-        return ResponseEntity.ok(cardResponse);
+        return ResponseEntity.ok(FromCardToCardResponse.doResponse(card));
     }
 
     @PostMapping("/change-status")
@@ -51,13 +45,7 @@ public class CardManipulationController {
     @GetMapping("/get-all")
     public ResponseEntity<List<CardResponse>> getCards() {
         List<CardResponse> response = cardService.getAllCards().stream()
-                .map(card -> new CardResponse(
-                        card.getNumber(),
-                        card.getExpiryDate(),
-                        card.getStatus(),
-                        card.getBalance(),
-                        card.getOwner().getUsername()
-                ))
+                .map(FromCardToCardResponse::doResponse)
                 .toList();
         return ResponseEntity.ok(response);
     }
@@ -66,14 +54,7 @@ public class CardManipulationController {
     public ResponseEntity<List<CardResponse>> getCards(@PathVariable String username) {
         List<CardResponse> response = cardService.getAllCards().stream()
                 .filter(card -> card.getOwner().getUsername().equals(username))
-                .map(card ->
-                        new CardResponse(
-                        card.getNumber(),
-                        card.getExpiryDate(),
-                        card.getStatus(),
-                        card.getBalance(),
-                        card.getOwner().getUsername()
-                ))
+                .map(FromCardToCardResponse::doResponse)
                 .toList();
         return ResponseEntity.ok(response);
     }

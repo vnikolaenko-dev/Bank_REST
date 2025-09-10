@@ -4,6 +4,7 @@ import com.example.bankcards.dto.card.CardCreateRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.CardRepository;
+import com.example.bankcards.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,12 +19,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CardService {
     private final CardRepository cardRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Transactional
     public Card createCard(CardCreateRequest createCardRequest) {
         System.out.println(createCardRequest);
-        User user = userService.findUserByUsername(createCardRequest.username())
+        User user = userRepository.findUserByUsername(createCardRequest.username())
                 .orElseThrow(() -> new RuntimeException("User not found: " + createCardRequest.username()));
         Card card = new Card();
         card.setOwner(user);
@@ -80,5 +81,15 @@ public class CardService {
     @Transactional
     public void deleteCard(Card cardFrom) {
         cardRepository.delete(cardFrom);
+    }
+
+    public void checkCards(User user) {
+        for (Card card: getCardsByUser(user)) {
+            if (card.getExpiryDate().compareTo(YearMonth.now()) < 0) {
+                card.setStatus(Card.CardStatus.SERVICE_PERIOD_IS_OVER);
+                cardRepository.save(card);
+            }
+        }
+
     }
 }

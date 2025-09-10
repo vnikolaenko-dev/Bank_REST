@@ -6,6 +6,7 @@ import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.UserService;
+import com.example.bankcards.util.translator.FromCardToCardResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +26,7 @@ public class CardController {
     public ResponseEntity<List<CardResponse>> getAllCards(@RequestBody UserRequest userRequest) {
         User user = userService.checkUserAndPassword(userRequest.username(), userRequest.password());
         List<CardResponse> response = cardService.getCardsByUser(user).stream()
-                .map(card -> new CardResponse(
-                        card.getNumber(),
-                        card.getExpiryDate(),
-                        card.getStatus(),
-                        card.getBalance(),
-                        card.getOwner().getUsername()
-                ))
+                .map(FromCardToCardResponse::doResponse)
                 .toList();
         return ResponseEntity.ok(response);
     }

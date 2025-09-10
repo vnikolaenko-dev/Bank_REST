@@ -25,9 +25,7 @@ public class QueryController {
     public ResponseEntity<String> blockCard(@RequestBody BlockCardQuery request) {
         userService.checkUserAndPassword(request.username(), request.password());
         Card card = cardService.findCardByNumber(request.cardNumber()).orElseThrow();
-        QueryToBlockCard requestToBlockCard = new QueryToBlockCard();
-        requestToBlockCard.setCard(card);
-        requestToBlockCard.setDescription(request.description());
+        QueryToBlockCard requestToBlockCard = new QueryToBlockCard(card, request.description());
         requestService.saveRequest(requestToBlockCard);
         return ResponseEntity.ok("success");
     }

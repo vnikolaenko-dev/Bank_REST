@@ -1,8 +1,11 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.dto.user.AuthRequest;
+import com.example.bankcards.dto.user.AuthResponse;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtUtil;
+import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,24 +20,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
-
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
-
-    public record AuthRequest(String username, String password) {}
-    public record AuthResponse(String token, List<String> roles) {}
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest request) {
-        // Находим пользователя
-        User user = userRepository.findUserByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Проверяем пароль
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
-        }
+        User user = userService.login(request);
 
         // Получаем роли пользователя
         var roles = user.getRoles().stream()
