@@ -23,7 +23,6 @@ public class CardService {
 
     @Transactional
     public Card createCard(CardCreateRequest createCardRequest) {
-        System.out.println(createCardRequest);
         User user = userRepository.findUserByUsername(createCardRequest.username())
                 .orElseThrow(() -> new RuntimeException("User not found: " + createCardRequest.username()));
         Card card = new Card();
@@ -43,8 +42,8 @@ public class CardService {
         return cardRepository.findByOwner(user);
     }
 
-    public ArrayList<Card> getAllCards() {
-        return (ArrayList<Card>) cardRepository.findAll();
+    public List<Card> getAllCards() {
+        return  cardRepository.findAll();
     }
 
     private String generateCardNumber() {

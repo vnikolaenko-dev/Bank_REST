@@ -25,8 +25,7 @@ public class CardManipulationController {
     }
 
     @PostMapping("/change-status")
-    public ResponseEntity<String> changeCardStatus(CardManipulateRequest request,
-                                                   @RequestParam Card.CardStatus status) {
+    public ResponseEntity<String> changeCardStatus(CardManipulateRequest request, @RequestParam Card.CardStatus status) {
         Card card = cardService.findCardByNumber(request.number())
                 .orElseThrow(() -> new RuntimeException("Card not found: " + request.number()));
         card.setStatus(status);

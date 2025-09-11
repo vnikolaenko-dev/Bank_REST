@@ -19,18 +19,21 @@ public class UserService {
     private final CardService cardService;
 
     public User login(AuthRequest request) {
-        // Находим пользователя
+        // находим пользователя
         User user = findUserByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Проверяем пароль
+        // проверяем пароль
         try {
             if (!request.password().equals(CryptoUtil.decrypt(user.getPassword()))) {
                 throw new RuntimeException("Invalid credentials");
             }
+
+            // проверка карт, не вышел ли срок использования
             Thread thread = new Thread(() -> {
                 cardService.checkCards(user);
             });
+
             thread.start();
             return user;
         } catch (Exception e) {

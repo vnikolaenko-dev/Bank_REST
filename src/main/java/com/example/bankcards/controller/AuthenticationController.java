@@ -3,17 +3,14 @@ package com.example.bankcards.controller;
 import com.example.bankcards.dto.user.AuthRequest;
 import com.example.bankcards.dto.user.AuthResponse;
 import com.example.bankcards.entity.User;
-import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtUtil;
 import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
